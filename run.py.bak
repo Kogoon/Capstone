@@ -1,0 +1,110 @@
+# -*- coding: utf-8 -*-
+
+import time
+import tkinter.ttk as ttk
+from tkinter import filedialog
+import tkinter.font as tkFont
+from tkinter import *
+import os
+import subprocess
+import sys
+import threading
+
+
+global output
+output = []
+
+def initUI():
+    window = Tk()
+    window.title("네카라쿠배 v1.0")
+    window.geometry("640x480")
+    
+    frame = Frame(window, width=640, height=480,)
+    frame.place(x=0, y=0)
+
+    lblText = StringVar()
+    lblText.set("Not search dir")
+    
+    path_font = tkFont.Font(size=14)
+
+    def openDir():
+        global path
+        dir_path = filedialog.askdirectory(parent=window, initialdir="/home/stud/Desktop/", title="Select dir")
+        path = dir_path
+        lblText.set('Selected\n' + path)
+    
+    outputBox = Text(window)
+    outputBox.pack(expand = True)
+
+    outputBox.configure(font=("Times", 12))
+    
+    def delMal():
+	comm = ['python', 'k2.py']
+	comm.append('-l')
+        comm.append(path)
+	print comm
+        p = subprocess.call(comm)
+        '''
+        while True:
+            res = p.stdout.readline()
+            if res == '' and p.poll() is not None: break
+            if res:
+                outputBox.insert('end', res.strip() + '\n')
+		outputBox.see(END)
+        '''
+        popUp.destroy()
+        
+        
+ 
+    def midDel():
+	t2 = threading.Thread(target=delMal)
+	t2.start()
+
+    def run():
+ 	comm = ['python', 'k2.py']
+	comm.append('-f')
+        comm.append(path)
+	print comm
+        p = subprocess.Popen(comm, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, shell = False)
+        while True:
+            res = p.stdout.readline()
+            if res == '' and p.poll() is not None: break
+            if res:
+                outputBox.insert('end', res.strip() + '\n')
+		outputBox.see(END)
+        rc = p.poll()
+        global popUp
+        popUp = Tk()
+        popUp.title("Finished Scan")
+	popUp.geometry("320x240")
+
+        popUpLbl = Label(popUp, text = 'Delete?')
+        popUpLbl.pack()
+        btnDelete = Button(popUp, text='Delete', command = midDel)
+        btnDelete.pack()
+        popUp.mainloop()
+    
+    def midRun():
+        t1 = threading.Thread(target=run)
+        t1.start()
+    
+    lbl = Label(window, textvariable = lblText, font=path_font)
+    lbl.pack(pady=10)
+
+    cancleBtn = Button(window, width=12, text="Quit", command=window.destroy)
+    cancleBtn.pack(side="right", padx=5, pady=10)
+
+    startBtn = Button(window, width=12, text="start", command = midRun)
+    startBtn.pack(side="right", padx=5)
+
+    openBtn = Button(window, width=12, text="Select Folder", command = openDir)
+    openBtn.pack(side="right", padx=5)
+
+    window.mainloop()
+
+def main():
+    initUI()
+    
+
+if __name__ == '__main__':
+    main()
